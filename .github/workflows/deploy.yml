@@ -1,0 +1,31 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main  # Деплой при пуше в main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.AWS_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H 35.180.208.103 >> ~/.ssh/known_hosts
+
+    - name: Deploy to AWS
+      run: |
+        ssh -i ~/.ssh/id_rsa ec2-user@35.180.208.103 << 'EOF'
+        cd file-service
+        git pull origin main
+        npm install
+        npm run build
+        pm2 restart file-service || pm2 start npm --name "file-service" -- run start:prod
+        EOF
