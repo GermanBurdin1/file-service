@@ -23,9 +23,12 @@ jobs:
     - name: Deploy to AWS
       run: |
         ssh -i ~/.ssh/id_rsa ec2-user@35.180.208.103 << 'EOF'
-        cd file-service
-        git pull origin main
-        npm install
-        npm run build
-        pm2 restart file-service || pm2 start npm --name "file-service" -- run start:prod
+          cd file-service
+          git pull origin main
+          npm install
+          npm run build
+          npm install -g pm2
+          pm2 delete file-service || true  # Удаляем процесс, если он есть
+          pm2 start npm --name "file-service" -- run start:prod  # Запускаем сервер
+          pm2 save  # Сохраняем процессы
         EOF
