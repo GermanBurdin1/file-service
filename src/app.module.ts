@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { FileModule } from './file/file.module';
+import { MaterialModule } from './materials/material.module';
+import { HomeworkModule } from './homework/homework.module';
 import { join } from 'path';
 
 console.log('Подключение к базе данных...');
@@ -27,6 +29,8 @@ console.log('DB_NAME:', process.env.DB_NAME);
 			synchronize: true, // Только для разработки
 		}),
 		FileModule, // Подключаем FileModule
+		MaterialModule, // Подключаем MaterialModule
+		HomeworkModule, // Подключаем HomeworkModule
 	],
 })
 

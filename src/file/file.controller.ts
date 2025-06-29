@@ -9,7 +9,17 @@ export class FileController {
 	constructor(private readonly fileService: FileService) { }
 	@Get()
   async getFilesByCourse(@Query('courseId') courseId: string) {
-    return this.fileService.getFilesByCourse(Number(courseId)); // ✅ Преобразуем в число
+    // Валидация courseId
+    let validCourseId: number;
+    if (!courseId || courseId.trim() === '' || isNaN(Number(courseId))) {
+      validCourseId = 1; // ID по умолчанию
+      console.log(`⚠️ Некорректный courseId "${courseId}", используется ID по умолчанию: 1`);
+    } else {
+      validCourseId = Number(courseId);
+      console.log(`✅ Получение файлов для courseId: ${validCourseId}`);
+    }
+    
+    return this.fileService.getFilesByCourse(validCourseId);
   }
 
 	@Post('upload')
@@ -18,6 +28,7 @@ export class FileController {
     @UploadedFile() file: Express.Multer.File,
     @Query('courseId') courseId: string,  // ✅ Получаем как строку
   ) {
+    console.log('📤 Запрос на загрузку файла:', file.originalname, 'courseId:', courseId);
     const result = await this.fileService.uploadFile(file, courseId);
     return result;
   }
