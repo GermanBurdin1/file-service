@@ -26,7 +26,9 @@ console.log('DB_NAME:', process.env.DB_NAME);
 			password: process.env.DB_PASS,
 			database: process.env.DB_NAME,
 			entities: [__dirname + '/**/*.entity{.ts,.js}'],
-			synchronize: true, // Только для разработки
+			synchronize: process.env.NODE_ENV === 'development', // Только для разработки
+			migrations: [__dirname + '/migrations/*.js'],
+			migrationsRun: process.env.NODE_ENV === 'production', // Автозапуск миграций в продакшене
 		}),
 		FileModule, // Подключаем FileModule
 		MaterialModule, // Подключаем MaterialModule
