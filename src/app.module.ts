@@ -6,7 +6,7 @@ import { MaterialModule } from './materials/material.module';
 import { HomeworkModule } from './homework/homework.module';
 import { join } from 'path';
 
-console.log('Подключение к базе данных...');
+console.log('Connexion à la base de données...');
 console.log('DB_HOST:', process.env.DB_HOST);
 console.log('DB_PORT:', process.env.DB_PORT);
 console.log('DB_USER:', process.env.DB_USER);
@@ -26,13 +26,13 @@ console.log('DB_NAME:', process.env.DB_NAME);
 			password: process.env.DB_PASS,
 			database: process.env.DB_NAME,
 			entities: [__dirname + '/**/*.entity{.ts,.js}'],
-			synchronize: process.env.NODE_ENV === 'development', // Только для разработки
+			synchronize: process.env.NODE_ENV === 'development', // seulement pour le développement
 			migrations: [__dirname + '/migrations/*.js'],
-			migrationsRun: process.env.NODE_ENV === 'production', // Автозапуск миграций в продакшене
+			migrationsRun: process.env.NODE_ENV === 'production', // auto-exécution des migrations en production
 		}),
-		FileModule, // Подключаем FileModule
-		MaterialModule, // Подключаем MaterialModule
-		HomeworkModule, // Подключаем HomeworkModule
+		FileModule, // module de gestion des fichiers
+		MaterialModule, // module de gestion des matériaux
+		HomeworkModule, // module de gestion des devoirs
 	],
 })
 

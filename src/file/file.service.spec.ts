@@ -6,7 +6,7 @@ import { Repository } from 'typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Создаем мок для репозитория
+// on crée un mock pour le repository
 const mockFileRepo = () => ({
   create: jest.fn(),
   save: jest.fn(),
@@ -35,7 +35,7 @@ describe('FileService', () => {
     service = module.get<FileService>(FileService);
     repo = module.get(getRepositoryToken(FileEntity));
 
-    // Мокаем функции fs для локального хранения
+    // on mock les fonctions fs pour le stockage local
     jest.spyOn(fs, 'writeFileSync').mockImplementation(() => {});
     jest.spyOn(fs, 'existsSync').mockReturnValue(true);
     jest.spyOn(fs, 'unlinkSync').mockImplementation(() => {});
@@ -86,6 +86,7 @@ describe('FileService', () => {
       repo.create.mockReturnValue(mockSavedFile);
       repo.save.mockResolvedValue(mockSavedFile);
 
+      // TODO : tester aussi avec courseId invalide
       const result = await service.uploadFile(mockFile, '');
 
       expect(repo.create).toHaveBeenCalled();
@@ -126,6 +127,7 @@ describe('FileService', () => {
       const result = await service.deleteFile(999);
 
       expect(repo.findOne).toHaveBeenCalledWith({ where: { id: 999 } });
+      // TODO : peut-être qu'on devrait logger cette tentative
       expect(result).toBe(false);
     });
   });

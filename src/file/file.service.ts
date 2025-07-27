@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
-// AWS S3 imports (закомментировано для локального хранения)
+// imports AWS S3 (commenté pour le stockage local)
 // import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FileEntity } from './file.entity';
-// Локальное хранение файлов
+// stockage local des fichiers
 import * as fs from 'fs';
 import * as path from 'path';
 
 @Injectable()
 export class FileService {
-  // AWS S3 клиент (закомментировано)
+  // client AWS S3 (commenté)
   // private s3 = new S3Client({
   //   region: process.env.AWS_REGION,
   //   credentials: {
@@ -20,14 +20,14 @@ export class FileService {
   //   },
   // });
 
-  // Локальное хранение файлов
+  // stockage local des fichiers
   private readonly uploadPath = path.join(process.cwd(), 'uploads');
 
   constructor(
     @InjectRepository(FileEntity)
     private readonly fileRepository: Repository<FileEntity>,
   ) {
-    // Создаем папку uploads если её нет (для локального хранения)
+    // on crée le dossier uploads s'il n'existe pas (pour le stockage local)
     if (!fs.existsSync(this.uploadPath)) {
       fs.mkdirSync(this.uploadPath, { recursive: true });
     }
@@ -37,27 +37,27 @@ export class FileService {
     try {
       let fileUrl: string;
       
-      // Валидация и преобразование courseId
+      // validation et transformation du courseId
       let validCourseId: number;
       if (!courseId || courseId.trim() === '') {
-        validCourseId = 1; // ID по умолчанию для общих материалов
-        console.log('⚠️ courseId пустой, используется ID по умолчанию: 1');
+        validCourseId = 1; // ID par défaut pour les matériaux généraux
+        console.log('[FileService] courseId vide, utilisation de l\'ID par défaut: 1');
       } else if (isNaN(Number(courseId))) {
-        // Если courseId не является числом (например, 'materials'), используем ID по умолчанию
+        // si courseId n'est pas un nombre (ex: 'materials'), on utilise l'ID par défaut
         validCourseId = 1; 
-        console.log(`⚠️ courseId "${courseId}" не является числом, используется ID по умолчанию: 1`);
+        console.log(`[FileService] courseId "${courseId}" n'est pas un nombre, utilisation de l'ID par défaut: 1`);
       } else {
         validCourseId = Number(courseId);
-        console.log(`✅ Используется courseId: ${validCourseId}`);
+        console.log(`[FileService] Utilisation du courseId: ${validCourseId}`);
       }
       
-      // Выбор режима хранения через переменную окружения
-      const storageMode = process.env.STORAGE_MODE || 'local'; // 'local' или 'aws'
+      // choix du mode de stockage via variable d'environnement
+      const storageMode = process.env.STORAGE_MODE || 'local'; // 'local' ou 'aws'
 
       if (storageMode === 'aws') {
-        // ==================== AWS S3 VERSION ====================
-        console.log('☁️ Используется AWS S3 хранение');
-        // Раскомментировать для использования AWS S3:
+        // ==================== VERSION AWS S3 ====================
+        console.log('[FileService] Utilisation du stockage AWS S3');
+        // décommenter pour utiliser AWS S3:
         // const fileKey = `uploads/${uuidv4()}-${file.originalname}`;
         // fileUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileKey}`;
         // 
@@ -68,39 +68,39 @@ export class FileService {
         //   ContentType: file.mimetype,
         // }));
         
-        // ВРЕМЕННАЯ ЗАГЛУШКА (удалить при переключении на AWS):
-        throw new Error('AWS S3 режим не настроен. Раскомментируйте код выше и настройте AWS переменные.');
+        // PLACEHOLDER TEMPORAIRE (à supprimer lors du basculement vers AWS):
+        throw new Error('Mode AWS S3 pas configuré. Décommentez le code ci-dessus et configurez les variables AWS.');
         
       } else {
-        // ==================== LOCAL STORAGE VERSION (по умолчанию) ====================
-        console.log('💾 Используется локальное хранение');
-        // Генерируем уникальное имя файла
+        // ==================== VERSION STOCKAGE LOCAL (par défaut) ====================
+        console.log('[FileService] Utilisation du stockage local');
+        // on génère un nom de fichier unique
         const fileExtension = path.extname(file.originalname);
         const fileName = `${uuidv4()}${fileExtension}`;
         const filePath = path.join(this.uploadPath, fileName);
         
-        // Сохраняем файл локально
+        // sauvegarde du fichier en local
         fs.writeFileSync(filePath, file.buffer);
         
-        // URL для доступа к файлу
+        // URL pour accéder au fichier
         fileUrl = `http://localhost:3008/uploads/${fileName}`;
         
-        console.log('💾 Файл сохранен локально:', filePath);
-        console.log('🔗 URL файла:', fileUrl);
+        console.log('[FileService] Fichier sauvegardé localement:', filePath);
+        console.log('[FileService] URL du fichier:', fileUrl);
       }
 
-      // ==================== COMMON CODE FOR BOTH VERSIONS ====================
-      // Сохраняем в PostgreSQL
+      // ==================== CODE COMMUN POUR LES DEUX VERSIONS ====================
+      // sauvegarde en PostgreSQL
       const newFile = this.fileRepository.create({
         filename: file.originalname,
         url: fileUrl,
         mimetype: file.mimetype,
-        courseId: validCourseId, // Используем валидированный courseId
+        courseId: validCourseId, // on utilise le courseId validé
       });
 
       const savedFile = await this.fileRepository.save(newFile);
 
-      console.log('✅ Файл успешно сохранен в БД с courseId:', validCourseId);
+      console.log('[FileService] Fichier sauvegardé avec succès en BDD avec courseId:', validCourseId);
 
       return {
         id: savedFile.id,
@@ -108,8 +108,8 @@ export class FileService {
         createdAt: savedFile.createdAt,
       };
     } catch (error) {
-      console.error('❌ Ошибка при загрузке файла:', error);
-      throw new Error(`Ошибка при сохранении файла: ${error.message}`);
+      console.error('[FileService] Erreur lors de l\'upload du fichier:', error);
+      throw new Error(`Erreur lors de la sauvegarde du fichier: ${error.message}`);
     }
   }
 
@@ -117,7 +117,7 @@ export class FileService {
     return this.fileRepository.find({ where: { courseId } });
   }
 
-  // Дополнительный метод для удаления файлов (только для локального хранения)
+  // méthode supplémentaire pour supprimer les fichiers (seulement pour stockage local)
   async deleteFile(fileId: number): Promise<boolean> {
     try {
       const file = await this.fileRepository.findOne({ where: { id: fileId } });
@@ -125,30 +125,31 @@ export class FileService {
         return false;
       }
 
-      // ==================== LOCAL STORAGE DELETE ====================
-      // Извлекаем имя файла из URL
+      // ==================== SUPPRESSION STOCKAGE LOCAL ====================
+      // on extrait le nom du fichier depuis l'URL
       const fileName = path.basename(file.url);
       const filePath = path.join(this.uploadPath, fileName);
 
-      // Удаляем физический файл
+      // suppression du fichier physique
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
 
-      // ==================== AWS S3 DELETE (закомментировано) ====================
+      // ==================== SUPPRESSION AWS S3 (commenté) ====================
       // const fileKey = file.url.split('.amazonaws.com/')[1];
       // await this.s3.send(new DeleteObjectCommand({
       //   Bucket: process.env.AWS_S3_BUCKET_NAME,
       //   Key: fileKey,
       // }));
 
-      // Удаляем запись из БД
+      // suppression de l'enregistrement en BDD
       await this.fileRepository.delete(fileId);
       
-      console.log('🗑️ Файл удален:', filePath);
+      console.log('[FileService] Fichier supprimé:', filePath);
       return true;
     } catch (error) {
-      console.error('❌ Ошибка при удалении файла:', error);
+      console.error('[FileService] Erreur lors de la suppression du fichier:', error);
+      // TODO : implémenter un système de retry pour les échecs de suppression
       return false;
     }
   }

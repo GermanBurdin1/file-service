@@ -16,9 +16,12 @@ describe('AppController (e2e)', () => {
   });
 
   it('/ (GET)', () => {
+    // test basique pour vérifier que l'app démarre
     return request(app.getHttpServer())
       .get('/')
       .expect(200)
       .expect('Hello World!');
   });
+
+  // TODO : ajouter des tests pour les endpoints de fichiers
 });

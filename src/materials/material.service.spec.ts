@@ -61,7 +61,7 @@ describe('MaterialService', () => {
     expect(result).toEqual([mockMaterial]);
   });
 
-  it('should get materials for teacher', async () => {
+  it('should get materials pour teacher', async () => {
     repo.find.mockResolvedValue([mockMaterial]);
     const result = await service.getMaterialsForTeacher('teacher1');
     expect(repo.find).toHaveBeenCalledWith({
@@ -71,9 +71,10 @@ describe('MaterialService', () => {
     expect(result).toEqual([mockMaterial]);
   });
 
-  it('should get materials for student', async () => {
+  it('should get materials pour student', async () => {
     repo.find.mockResolvedValue([mockMaterial]);
     const result = await service.getMaterialsForStudent('student1');
+    // TODO : cette méthode devrait probablement filter par cours réel
     expect(repo.find).toHaveBeenCalledWith({
       where: {},
       order: { createdAt: 'DESC' },
@@ -87,7 +88,7 @@ describe('MaterialService', () => {
     expect(result).toEqual([mockMaterial]);
   });
 
-  it('should create material', async () => {
+  it('should create material correctly', async () => {
     const dto: CreateMaterialDto = {
       title: 'New Material',
       type: 'pdf',
@@ -169,6 +170,7 @@ describe('MaterialService', () => {
       },
       order: { createdAt: 'DESC' },
     });
+    // TODO : tester la recherche sans type spécifié aussi
     expect(result).toEqual([mockMaterial]);
   });
 });

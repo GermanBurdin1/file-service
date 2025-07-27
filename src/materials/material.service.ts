@@ -25,15 +25,15 @@ export class MaterialService {
   }
 
   async getMaterialsForStudent(studentId: string): Promise<MaterialEntity[]> {
-    // Возвращаем материалы, прикрепленные к урокам студента
+    // on retourne les matériaux attachés aux cours de l'étudiant
     return this.materialRepository.find({
-      where: {},  // Можно добавить логику фильтрации по урокам студента
+      where: {},  // TODO : ajouter la logique de filtrage par cours de l'étudiant
       order: { createdAt: 'DESC' }
     });
   }
 
   async getLessonMaterials(userId: string): Promise<MaterialEntity[]> {
-    // Возвращаем материалы, которые прикреплены к урокам пользователя
+    // on retourne les matériaux qui sont attachés aux cours de l'utilisateur
     return this.materialRepository
       .createQueryBuilder('material')
       .where('material.attachedLessons != :emptyArray', { emptyArray: '[]' })
@@ -93,6 +93,7 @@ export class MaterialService {
       whereCondition.type = type;
     }
     
+    // TODO : améliorer la recherche avec des critères plus avancés
     return this.materialRepository.find({
       where: whereCondition,
       order: { createdAt: 'DESC' }
