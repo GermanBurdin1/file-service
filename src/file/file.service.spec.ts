@@ -4,7 +4,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { FileEntity } from './file.entity';
 import { Repository } from 'typeorm';
 import * as fs from 'fs';
-import * as path from 'path';
+// import * as path from 'path';
 
 // Создаем мок для репозитория
 const mockFileRepo = () => ({

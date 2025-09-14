@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like } from 'typeorm';
 import { MaterialEntity } from './material.entity';
@@ -6,6 +6,8 @@ import { CreateMaterialDto, AttachMaterialDto } from './material.dto';
 
 @Injectable()
 export class MaterialService {
+  private readonly logger = new Logger(MaterialService.name);
+
   constructor(
     @InjectRepository(MaterialEntity)
     private materialRepository: Repository<MaterialEntity>,
@@ -26,14 +28,16 @@ export class MaterialService {
 
   async getMaterialsForStudent(studentId: string): Promise<MaterialEntity[]> {
     // Возвращаем материалы, прикрепленные к урокам студента
+    this.logger.log(`📚 Получение материалов для студента: ${studentId}`);
     return this.materialRepository.find({
-      where: {},  // Можно добавить логику фильтрации по урокам студента
+      where: {},  // TODO: Добавить логику фильтрации по урокам студента
       order: { createdAt: 'DESC' }
     });
   }
 
   async getLessonMaterials(userId: string): Promise<MaterialEntity[]> {
     // Возвращаем материалы, которые прикреплены к урокам пользователя
+    this.logger.log(`📚 Получение материалов уроков для пользователя: ${userId}`);
     return this.materialRepository
       .createQueryBuilder('material')
       .where('material.attachedLessons != :emptyArray', { emptyArray: '[]' })
