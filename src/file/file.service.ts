@@ -83,7 +83,8 @@ export class FileService {
         fs.writeFileSync(filePath, file.buffer);
         
         // URL для доступа к файлу через API Gateway
-        fileUrl = `http://localhost:3011/files/uploads/${fileName}`;
+        const apiGatewayUrl = process.env.API_GATEWAY_URL || 'http://localhost:3011';
+        fileUrl = `${apiGatewayUrl}/files/uploads/${fileName}`;
         
         console.log('💾 Файл сохранен локально:', filePath);
         console.log('🔗 URL файла:', fileUrl);
