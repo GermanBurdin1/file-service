@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, Query, Req } from '@nestjs/common';
 import { HomeworkService } from './homework.service';
 import { CreateHomeworkDto, SubmitHomeworkDto, UpdateHomeworkStatusDto, HomeworkFilterDto } from './homework.dto';
 
@@ -7,50 +7,60 @@ export class HomeworkController {
   constructor(private readonly homeworkService: HomeworkService) {}
 
   @Post()
-  async createHomework(@Body() createHomeworkDto: CreateHomeworkDto) {
-    return this.homeworkService.createHomework(createHomeworkDto);
+  async createHomework(@Body() createHomeworkDto: CreateHomeworkDto, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.homeworkService.createHomework(createHomeworkDto, userId);
   }
 
   @Get('teacher/:teacherId')
-  async getHomeworkForTeacher(@Param('teacherId') teacherId: string) {
-    return this.homeworkService.getHomeworkForTeacher(teacherId);
+  async getHomeworkForTeacher(@Param('teacherId') teacherId: string, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.homeworkService.getHomeworkForTeacher(teacherId, userId);
   }
 
   @Get('student/:studentId')
-  async getHomeworkForStudent(@Param('studentId') studentId: string) {
-    return this.homeworkService.getHomeworkForStudent(studentId);
+  async getHomeworkForStudent(@Param('studentId') studentId: string, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.homeworkService.getHomeworkForStudent(studentId, userId);
   }
 
   @Patch(':id/submit')
-  async submitHomework(@Param('id') id: string, @Body() submitDto: SubmitHomeworkDto) {
-    return this.homeworkService.submitHomework(id, submitDto);
+  async submitHomework(@Param('id') id: string, @Body() submitDto: SubmitHomeworkDto, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.homeworkService.submitHomework(id, submitDto, userId);
   }
 
   @Patch(':id/grade')
   async gradeHomework(
     @Param('id') id: string,
-    @Body() gradeData: { grade: number; feedback?: string }
+    @Body() gradeData: { grade: number; feedback?: string },
+    @Req() req: any
   ) {
-    return this.homeworkService.gradeHomework(id, gradeData.grade, gradeData.feedback);
+    const userId = req.user?.sub;
+    return this.homeworkService.gradeHomework(id, gradeData.grade, gradeData.feedback, userId);
   }
 
   @Patch(':id/status')
-  async updateHomeworkStatus(@Param('id') id: string, @Body() statusDto: UpdateHomeworkStatusDto) {
-    return this.homeworkService.updateHomeworkStatus(id, statusDto);
+  async updateHomeworkStatus(@Param('id') id: string, @Body() statusDto: UpdateHomeworkStatusDto, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.homeworkService.updateHomeworkStatus(id, statusDto, userId);
   }
 
   @Get('filter')
-  async filterHomework(@Query() filters: HomeworkFilterDto) {
-    return this.homeworkService.filterHomework(filters);
+  async filterHomework(@Query() filters: HomeworkFilterDto, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.homeworkService.filterHomework(filters, userId);
   }
 
   @Delete(':id')
-  async deleteHomework(@Param('id') id: string) {
-    return this.homeworkService.deleteHomework(id);
+  async deleteHomework(@Param('id') id: string, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.homeworkService.deleteHomework(id, userId);
   }
 
   @Patch(':id')
-  async updateHomework(@Param('id') id: string, @Body() updates: any) {
-    return this.homeworkService.updateHomework(id, updates);
+  async updateHomework(@Param('id') id: string, @Body() updates: any, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.homeworkService.updateHomework(id, updates, userId);
   }
 } 

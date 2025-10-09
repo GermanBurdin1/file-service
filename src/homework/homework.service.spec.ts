@@ -54,7 +54,7 @@ describe('HomeworkService', () => {
     const dto: CreateHomeworkDto = {
       title: 'Test Homework',
       description: 'Test description',
-      assignedBy: 'teacher1',
+      assignedBy: 'user1',
       assignedByName: 'Teacher One',
       assignedTo: 'student1',
       assignedToName: 'Student One',
@@ -65,7 +65,7 @@ describe('HomeworkService', () => {
     repo.create.mockReturnValue(mockHomework);
     repo.save.mockResolvedValue(mockHomework);
 
-    const result = await service.createHomework(dto);
+    const result = await service.createHomework(dto, 'user1');
     expect(repo.create).toHaveBeenCalledWith({
       ...dto,
       materialIds: [],
@@ -101,8 +101,26 @@ describe('HomeworkService', () => {
       submittedAt: new Date(),
       status: 'submitted',
     };
+    
+    const mockHomework = {
+      id: '1',
+      title: 'Test Homework',
+      description: 'Test description',
+      assignedBy: 'teacher1',
+      assignedByName: 'Teacher One',
+      assignedTo: 'user1',
+      assignedToName: 'Student One',
+      dueDate: new Date(),
+      materialIds: [],
+      isLinkedToMaterials: false,
+      status: 'pending',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    } as any;
+    
+    repo.findOne.mockResolvedValue(mockHomework);
     repo.update.mockResolvedValue({ affected: 1, raw: {}, generatedMaps: [] } as UpdateResult);
-    await service.submitHomework('1', dto);
+    await service.submitHomework('1', dto, 'user1');
     expect(repo.update).toHaveBeenCalledWith('1', {
       submittedAt: dto.submittedAt,
       status: 'submitted',

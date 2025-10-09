@@ -1,4 +1,4 @@
-import { Controller, Post, UseInterceptors, UploadedFile, Get, Query } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFile, Get, Query, Req } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from './file.service';
 
@@ -8,18 +8,19 @@ import { FileService } from './file.service';
 export class FileController {
 	constructor(private readonly fileService: FileService) { }
 	@Get()
-  async getFilesByCourse(@Query('courseId') courseId: string) {
+  async getFilesByCourse(@Query('courseId') courseId: string, @Req() req: any) {
+    const userId = req.user?.sub;
     // Валидация courseId
     let validCourseId: number;
     if (!courseId || courseId.trim() === '' || isNaN(Number(courseId))) {
       validCourseId = 1; // ID по умолчанию
-      console.log(`⚠️ Некорректный courseId "${courseId}", используется ID по умолчанию: 1`);
+      console.log(`⚠️ Некорректный courseId "${courseId}", используется ID по умолчанию: 1 для пользователя ${userId}`);
     } else {
       validCourseId = Number(courseId);
-      console.log(`✅ Получение файлов для courseId: ${validCourseId}`);
+      console.log(`✅ Получение файлов для courseId: ${validCourseId} пользователем ${userId}`);
     }
     
-    return this.fileService.getFilesByCourse(validCourseId);
+    return this.fileService.getFilesByCourse(validCourseId, userId);
   }
 
 	@Post('upload')
@@ -27,9 +28,11 @@ export class FileController {
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Query('courseId') courseId: string,  // ✅ Получаем как строку
+    @Req() req: any
   ) {
-    console.log('📤 Запрос на загрузку файла:', file.originalname, 'courseId:', courseId);
-    const result = await this.fileService.uploadFile(file, courseId);
+    const userId = req.user?.sub;
+    console.log('📤 Запрос на загрузку файла:', file.originalname, 'courseId:', courseId, 'пользователем:', userId);
+    const result = await this.fileService.uploadFile(file, courseId, userId);
     return result;
   }
 }

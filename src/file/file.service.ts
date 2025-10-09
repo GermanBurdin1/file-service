@@ -33,7 +33,7 @@ export class FileService {
     }
   }
 
-  async uploadFile(file: Express.Multer.File, courseId: string): Promise<{ id: number; url: string; createdAt: Date }> {
+  async uploadFile(file: Express.Multer.File, courseId: string, userId: string): Promise<{ id: number; url: string; createdAt: Date }> {
     try {
       let fileUrl: string;
       
@@ -97,6 +97,7 @@ export class FileService {
         url: fileUrl,
         mimetype: file.mimetype,
         courseId: validCourseId, // Используем валидированный courseId
+        userId: userId, // Добавляем владельца файла
       });
 
       const savedFile = await this.fileRepository.save(newFile);
@@ -114,16 +115,26 @@ export class FileService {
     }
   }
 
-  async getFilesByCourse(courseId: number): Promise<FileEntity[]> {
-    return this.fileRepository.find({ where: { courseId } });
+  async getFilesByCourse(courseId: number, userId: string): Promise<FileEntity[]> {
+    return this.fileRepository.find({ 
+      where: { 
+        courseId,
+        userId // Пользователь может видеть только свои файлы
+      } 
+    });
   }
 
   // Дополнительный метод для удаления файлов (только для локального хранения)
-  async deleteFile(fileId: number): Promise<boolean> {
+  async deleteFile(fileId: number, userId: string): Promise<boolean> {
     try {
       const file = await this.fileRepository.findOne({ where: { id: fileId } });
       if (!file) {
         return false;
+      }
+
+      // Проверяем, что пользователь является владельцем файла
+      if (file.userId !== userId) {
+        throw new Error('Unauthorized: You can only delete your own files');
       }
 
       // ==================== LOCAL STORAGE DELETE ====================

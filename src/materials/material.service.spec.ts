@@ -57,7 +57,7 @@ describe('MaterialService', () => {
   it('should get all materials', async () => {
     repo.find.mockResolvedValue([mockMaterial]);
     const result = await service.getAllMaterials();
-    expect(repo.find).toHaveBeenCalledWith({ order: { createdAt: 'DESC' } });
+    expect(repo.find).toHaveBeenCalledWith({ order: { createdAt: 'DESC' }, where: {} });
     expect(result).toEqual([mockMaterial]);
   });
 
@@ -93,7 +93,7 @@ describe('MaterialService', () => {
       type: 'pdf',
       content: 'Some PDF content',
       description: 'Description here',
-      createdBy: 'teacher1',
+      createdBy: 'user1',
       createdByName: 'Teacher Name',
       tags: ['tag1'],
     };
@@ -101,7 +101,7 @@ describe('MaterialService', () => {
     repo.create.mockReturnValue(mockMaterial);
     repo.save.mockResolvedValue(mockMaterial);
 
-    const result = await service.createMaterial(dto);
+    const result = await service.createMaterial(dto, 'user1');
     expect(repo.create).toHaveBeenCalledWith({
       ...dto,
       attachedLessons: [],

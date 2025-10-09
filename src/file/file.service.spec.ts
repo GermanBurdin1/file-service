@@ -62,7 +62,7 @@ describe('FileService', () => {
       repo.create.mockReturnValue(mockSavedFile);
       repo.save.mockResolvedValue(mockSavedFile);
 
-      const result = await service.uploadFile(mockFile, '2');
+      const result = await service.uploadFile(mockFile, '2', 'user1');
 
       expect(repo.create).toHaveBeenCalled();
       expect(repo.save).toHaveBeenCalledWith(mockSavedFile);
@@ -86,7 +86,7 @@ describe('FileService', () => {
       repo.create.mockReturnValue(mockSavedFile);
       repo.save.mockResolvedValue(mockSavedFile);
 
-      const result = await service.uploadFile(mockFile, '');
+      const result = await service.uploadFile(mockFile, '', 'user1');
 
       expect(repo.create).toHaveBeenCalled();
       expect(result).toHaveProperty('id', mockSavedFile.id);
@@ -99,20 +99,20 @@ describe('FileService', () => {
       const files = [{ id: 1, filename: 'file1' }] as FileEntity[];
       repo.find.mockResolvedValue(files);
 
-      const result = await service.getFilesByCourse(1);
+      const result = await service.getFilesByCourse(1, 'user1');
       expect(result).toEqual(files);
-      expect(repo.find).toHaveBeenCalledWith({ where: { courseId: 1 } });
+      expect(repo.find).toHaveBeenCalledWith({ where: { courseId: 1, userId: 'user1' } });
     });
   });
 
   describe('deleteFile', () => {
     it('should delete file if exists', async () => {
-      const file = { id: 1, url: 'http://localhost:3008/uploads/test.txt' } as FileEntity;
+      const file = { id: 1, url: 'http://localhost:3008/uploads/test.txt', userId: 'user1' } as FileEntity;
       repo.findOne.mockResolvedValue(file);
 
       repo.delete.mockResolvedValue({ affected: 1, raw: {} });
 
-      const result = await service.deleteFile(1);
+      const result = await service.deleteFile(1, 'user1');
 
       expect(repo.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
       expect(fs.unlinkSync).toHaveBeenCalled();
@@ -123,7 +123,7 @@ describe('FileService', () => {
     it('should return false if file does not exist', async () => {
       repo.findOne.mockResolvedValue(undefined);
 
-      const result = await service.deleteFile(999);
+      const result = await service.deleteFile(999, 'user1');
 
       expect(repo.findOne).toHaveBeenCalledWith({ where: { id: 999 } });
       expect(result).toBe(false);

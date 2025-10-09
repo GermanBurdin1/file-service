@@ -37,8 +37,9 @@ describe('FileController', () => {
       const files = [{ id: 1, name: 'file1.pdf' }];
       service.getFilesByCourse = jest.fn().mockResolvedValue(files);
 
-      const result = await controller.getFilesByCourse('');
-      expect(service.getFilesByCourse).toHaveBeenCalledWith(1);
+      const mockReq = { user: { sub: 'user1' } };
+      const result = await controller.getFilesByCourse('', mockReq);
+      expect(service.getFilesByCourse).toHaveBeenCalledWith(1, 'user1');
       expect(result).toEqual(files);
     });
 
@@ -46,8 +47,9 @@ describe('FileController', () => {
       const files = [{ id: 2, name: 'file2.pdf' }];
       service.getFilesByCourse = jest.fn().mockResolvedValue(files);
 
-      const result = await controller.getFilesByCourse('42');
-      expect(service.getFilesByCourse).toHaveBeenCalledWith(42);
+      const mockReq = { user: { sub: 'user1' } };
+      const result = await controller.getFilesByCourse('42', mockReq);
+      expect(service.getFilesByCourse).toHaveBeenCalledWith(42, 'user1');
       expect(result).toEqual(files);
     });
 
@@ -55,8 +57,9 @@ describe('FileController', () => {
       const files = [{ id: 3, name: 'file3.pdf' }];
       service.getFilesByCourse = jest.fn().mockResolvedValue(files);
 
-      const result = await controller.getFilesByCourse('invalid');
-      expect(service.getFilesByCourse).toHaveBeenCalledWith(1);
+      const mockReq = { user: { sub: 'user1' } };
+      const result = await controller.getFilesByCourse('invalid', mockReq);
+      expect(service.getFilesByCourse).toHaveBeenCalledWith(1, 'user1');
       expect(result).toEqual(files);
     });
   });
@@ -79,8 +82,9 @@ describe('FileController', () => {
       const resultMock = { success: true, url: '/uploads/test.pdf' };
       service.uploadFile = jest.fn().mockResolvedValue(resultMock);
 
-      const result = await controller.uploadFile(fileMock, '5');
-      expect(service.uploadFile).toHaveBeenCalledWith(fileMock, '5');
+      const mockReq = { user: { sub: 'user1' } };
+      const result = await controller.uploadFile(fileMock, '5', mockReq);
+      expect(service.uploadFile).toHaveBeenCalledWith(fileMock, '5', 'user1');
       expect(result).toEqual(resultMock);
     });
   });

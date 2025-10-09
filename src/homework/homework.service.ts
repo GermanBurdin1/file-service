@@ -11,7 +11,12 @@ export class HomeworkService {
     private homeworkRepository: Repository<HomeworkEntity>,
   ) {}
 
-  async createHomework(createHomeworkDto: CreateHomeworkDto): Promise<HomeworkEntity> {
+  async createHomework(createHomeworkDto: CreateHomeworkDto, userId: string): Promise<HomeworkEntity> {
+    // Проверяем, что пользователь создает домашнее задание для себя как преподавателя
+    if (createHomeworkDto.assignedBy !== userId) {
+      throw new Error('Unauthorized: You can only create homework as yourself');
+    }
+    
     const homework = this.homeworkRepository.create({
       ...createHomeworkDto,
       materialIds: createHomeworkDto.materialIds || [],
@@ -20,28 +25,60 @@ export class HomeworkService {
     return this.homeworkRepository.save(homework);
   }
 
-  async getHomeworkForTeacher(teacherId: string): Promise<HomeworkEntity[]> {
+  async getHomeworkForTeacher(teacherId: string, userId?: string): Promise<HomeworkEntity[]> {
+    // Проверяем владение, если передан userId
+    if (userId && teacherId !== userId) {
+      throw new Error('Unauthorized: You can only view your own homework assignments');
+    }
+    
     return this.homeworkRepository.find({
       where: { assignedBy: teacherId },
       order: { assignedAt: 'DESC' }
     });
   }
 
-  async getHomeworkForStudent(studentId: string): Promise<HomeworkEntity[]> {
+  async getHomeworkForStudent(studentId: string, userId?: string): Promise<HomeworkEntity[]> {
+    // Проверяем владение, если передан userId
+    if (userId && studentId !== userId) {
+      throw new Error('Unauthorized: You can only view your own homework');
+    }
+    
     return this.homeworkRepository.find({
       where: { assignedTo: studentId },
       order: { assignedAt: 'DESC' }
     });
   }
 
-  async submitHomework(homeworkId: string, submitDto: SubmitHomeworkDto): Promise<void> {
+  async submitHomework(homeworkId: string, submitDto: SubmitHomeworkDto, userId: string): Promise<void> {
+    // Проверяем, что пользователь является получателем домашнего задания
+    const homework = await this.homeworkRepository.findOne({ where: { id: homeworkId } });
+    if (!homework) {
+      throw new Error('Homework not found');
+    }
+    
+    if (homework.assignedTo !== userId) {
+      throw new Error('Unauthorized: You can only submit your own homework');
+    }
+    
     await this.homeworkRepository.update(homeworkId, {
       submittedAt: submitDto.submittedAt,
       status: 'submitted'
     });
   }
 
-  async gradeHomework(homeworkId: string, grade: number, feedback?: string): Promise<void> {
+  async gradeHomework(homeworkId: string, grade: number, feedback?: string, userId?: string): Promise<void> {
+    // Проверяем, что пользователь является преподавателем, который назначил задание
+    if (userId) {
+      const homework = await this.homeworkRepository.findOne({ where: { id: homeworkId } });
+      if (!homework) {
+        throw new Error('Homework not found');
+      }
+      
+      if (homework.assignedBy !== userId) {
+        throw new Error('Unauthorized: You can only grade homework you assigned');
+      }
+    }
+    
     await this.homeworkRepository.update(homeworkId, {
       grade,
       teacherFeedback: feedback,
@@ -49,14 +86,43 @@ export class HomeworkService {
     });
   }
 
-  async updateHomeworkStatus(homeworkId: string, statusDto: UpdateHomeworkStatusDto): Promise<void> {
+  async updateHomeworkStatus(homeworkId: string, statusDto: UpdateHomeworkStatusDto, userId?: string): Promise<void> {
+    // Проверяем, что пользователь имеет право обновлять статус
+    if (userId) {
+      const homework = await this.homeworkRepository.findOne({ where: { id: homeworkId } });
+      if (!homework) {
+        throw new Error('Homework not found');
+      }
+      
+      // Только назначивший преподаватель или получающий студент могут обновлять статус
+      if (homework.assignedBy !== userId && homework.assignedTo !== userId) {
+        throw new Error('Unauthorized: You can only update homework you assigned or received');
+      }
+    }
+    
     await this.homeworkRepository.update(homeworkId, {
       status: statusDto.status
     });
   }
 
-  async filterHomework(filters: HomeworkFilterDto): Promise<HomeworkEntity[]> {
+  async filterHomework(filters: HomeworkFilterDto, userId?: string): Promise<HomeworkEntity[]> {
     const whereCondition: any = {};
+
+    // Проверяем, что пользователь может фильтровать только свои задания
+    if (userId) {
+      if (filters.teacherId && filters.teacherId !== userId) {
+        throw new Error('Unauthorized: You can only filter your own homework assignments');
+      }
+      if (filters.studentId && filters.studentId !== userId) {
+        throw new Error('Unauthorized: You can only filter your own homework');
+      }
+      
+      // Если не указаны фильтры, показываем только задания пользователя
+      if (!filters.teacherId && !filters.studentId) {
+        whereCondition.assignedBy = userId;
+        whereCondition.assignedTo = userId;
+      }
+    }
 
     if (filters.teacherId) {
       whereCondition.assignedBy = filters.teacherId;
@@ -80,11 +146,35 @@ export class HomeworkService {
     });
   }
 
-  async deleteHomework(id: string): Promise<void> {
+  async deleteHomework(id: string, userId?: string): Promise<void> {
+    // Проверяем, что пользователь является назначившим преподавателем
+    if (userId) {
+      const homework = await this.homeworkRepository.findOne({ where: { id } });
+      if (!homework) {
+        throw new Error('Homework not found');
+      }
+      
+      if (homework.assignedBy !== userId) {
+        throw new Error('Unauthorized: You can only delete homework you assigned');
+      }
+    }
+    
     await this.homeworkRepository.delete(id);
   }
 
-  async updateHomework(id: string, updates: Partial<HomeworkEntity>): Promise<HomeworkEntity> {
+  async updateHomework(id: string, updates: Partial<HomeworkEntity>, userId?: string): Promise<HomeworkEntity> {
+    // Проверяем, что пользователь является назначившим преподавателем
+    if (userId) {
+      const homework = await this.homeworkRepository.findOne({ where: { id } });
+      if (!homework) {
+        throw new Error('Homework not found');
+      }
+      
+      if (homework.assignedBy !== userId) {
+        throw new Error('Unauthorized: You can only update homework you assigned');
+      }
+    }
+    
     await this.homeworkRepository.update(id, updates);
     return this.homeworkRepository.findOne({ where: { id } });
   }

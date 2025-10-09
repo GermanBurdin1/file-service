@@ -18,6 +18,9 @@ export class FileEntity {
 	@Column()
   courseId: number;
 
+  @Column({ type: 'uuid' })
+  userId: string;
+
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }

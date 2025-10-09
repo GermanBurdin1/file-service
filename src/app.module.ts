@@ -13,6 +13,11 @@ import { FileModule } from './file/file.module';
 import { MaterialModule } from './materials/material.module';
 import { HomeworkModule } from './homework/homework.module';
 import { join } from 'path';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtStrategy } from './auth/jwt.strategy';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 console.log('Подключение к базе данных...');
 console.log('DB_HOST:', process.env.DB_HOST);
@@ -38,9 +43,24 @@ console.log('DB_NAME:', process.env.DB_NAME);
 			migrations: [__dirname + '/migrations/*.js'],
 			migrationsRun: process.env.NODE_ENV === 'production', // Автозапуск миграций в продакшене
 		}),
+
+		PassportModule.register({ defaultStrategy: 'jwt' }),
+		JwtModule.register({
+			secret: process.env.JWT_SECRET,
+			verifyOptions: {
+				algorithms: ['HS256'],
+				issuer: process.env.JWT_ISS,
+			},
+		}),
+
 		FileModule, // Подключаем FileModule
 		MaterialModule, // Подключаем MaterialModule
 		HomeworkModule, // Подключаем HomeworkModule
+	],
+	providers: [
+		JwtStrategy,
+		// Делаем guard глобальным для сервиса:
+		{ provide: APP_GUARD, useClass: JwtAuthGuard },
 	],
 })
 

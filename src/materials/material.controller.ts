@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, Query, Req } from '@nestjs/common';
 import { MaterialService } from './material.service';
 import { CreateMaterialDto, AttachMaterialDto } from './material.dto';
 
@@ -7,55 +7,66 @@ export class MaterialController {
   constructor(private readonly materialService: MaterialService) {}
 
   @Get()
-  async getAllMaterials() {
-    return this.materialService.getAllMaterials();
+  async getAllMaterials(@Req() req: any) {
+    const userId = req.user?.sub;
+    return this.materialService.getAllMaterials(userId);
   }
 
   @Get('teacher/:teacherId')
-  async getMaterialsForTeacher(@Param('teacherId') teacherId: string) {
-    return this.materialService.getMaterialsForTeacher(teacherId);
+  async getMaterialsForTeacher(@Param('teacherId') teacherId: string, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.materialService.getMaterialsForTeacher(teacherId, userId);
   }
 
   @Get('student/:studentId')
-  async getMaterialsForStudent(@Param('studentId') studentId: string) {
-    return this.materialService.getMaterialsForStudent(studentId);
+  async getMaterialsForStudent(@Param('studentId') studentId: string, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.materialService.getMaterialsForStudent(studentId, userId);
   }
 
   @Get('lesson-materials/:userId')
-  async getLessonMaterials(@Param('userId') userId: string) {
-    return this.materialService.getLessonMaterials(userId);
+  async getLessonMaterials(@Param('userId') userId: string, @Req() req: any) {
+    const currentUserId = req.user?.sub;
+    return this.materialService.getLessonMaterials(userId, currentUserId);
   }
 
   @Post()
-  async createMaterial(@Body() createMaterialDto: CreateMaterialDto) {
-    return this.materialService.createMaterial(createMaterialDto);
+  async createMaterial(@Body() createMaterialDto: CreateMaterialDto, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.materialService.createMaterial(createMaterialDto, userId);
   }
 
   @Post('attach')
-  async attachMaterialToLesson(@Body() attachDto: AttachMaterialDto) {
-    return this.materialService.attachMaterialToLesson(attachDto);
+  async attachMaterialToLesson(@Body() attachDto: AttachMaterialDto, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.materialService.attachMaterialToLesson(attachDto, userId);
   }
 
   @Delete(':materialId/lessons/:lessonId')
   async detachMaterialFromLesson(
     @Param('materialId') materialId: string,
-    @Param('lessonId') lessonId: string
+    @Param('lessonId') lessonId: string,
+    @Req() req: any
   ) {
-    return this.materialService.detachMaterialFromLesson(materialId, lessonId);
+    const userId = req.user?.sub;
+    return this.materialService.detachMaterialFromLesson(materialId, lessonId, userId);
   }
 
   @Delete(':id')
-  async deleteMaterial(@Param('id') id: string) {
-    return this.materialService.deleteMaterial(id);
+  async deleteMaterial(@Param('id') id: string, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.materialService.deleteMaterial(id, userId);
   }
 
   @Patch(':id')
-  async updateMaterial(@Param('id') id: string, @Body() updates: any) {
-    return this.materialService.updateMaterial(id, updates);
+  async updateMaterial(@Param('id') id: string, @Body() updates: any, @Req() req: any) {
+    const userId = req.user?.sub;
+    return this.materialService.updateMaterial(id, updates, userId);
   }
 
   @Get('search')
-  async searchMaterials(@Query('query') query: string, @Query('type') type?: string) {
-    return this.materialService.searchMaterials(query, type);
+  async searchMaterials(@Query('query') query: string, @Req() req: any, @Query('type') type?: string) {
+    const userId = req.user?.sub;
+    return this.materialService.searchMaterials(query, type, userId);
   }
 } 
