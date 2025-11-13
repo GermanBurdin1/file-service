@@ -6,6 +6,7 @@ export class CreateMaterialDto {
   createdBy: string;
   createdByName: string;
   tags: string[];
+	userId: string;
 }
 
 export class AttachMaterialDto {

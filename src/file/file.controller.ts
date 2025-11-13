@@ -1,4 +1,4 @@
-import { Controller, Post, UseInterceptors, UploadedFile, Get, Query, Req } from '@nestjs/common';
+import { Controller, Post, UseInterceptors, UploadedFile, Get, Query, Req, Body } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileService } from './file.service';
 
@@ -24,16 +24,35 @@ export class FileController {
   }
 
 	@Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: any
-  ) {
-    const userId = req.user?.sub;
-    console.log('📤 Запрос на загрузку файла:', file.originalname, 'пользователем:', userId);
-    const result = await this.fileService.uploadFile(file, userId);
-    return result;
+@UseInterceptors(FileInterceptor('file'))
+async uploadFile(
+  @UploadedFile() file: Express.Multer.File,
+  @Body('courseId') courseIdRaw: string | undefined,
+  @Req() req: any
+) {
+  const userId = req.user?.sub;
+
+  let courseId: number | null = null;
+  if (courseIdRaw !== undefined && courseIdRaw !== null && courseIdRaw !== '') {
+    const parsed = Number(courseIdRaw);
+    if (!Number.isNaN(parsed)) {
+      courseId = parsed;
+    }
   }
+
+  console.log(
+    '📤 Запрос на загрузку файла:',
+    file.originalname,
+    'пользователем:',
+    userId,
+    'courseId:',
+    courseId
+  );
+
+  const result = await this.fileService.uploadFile(file, userId, courseId);
+  return result;
+}
+
 
 	@Post('uploadAsCourse')
   @UseInterceptors(FileInterceptor('file'))

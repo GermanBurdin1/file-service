@@ -32,6 +32,7 @@ export class MaterialController {
 
   @Post()
   async createMaterial(@Body() createMaterialDto: CreateMaterialDto, @Req() req: any) {
+		console.warn("in controller back:", createMaterialDto)
     const userId = req.user?.sub;
     return this.materialService.createMaterial(createMaterialDto, userId);
   }
