@@ -33,7 +33,73 @@ export class FileService {
     }
   }
 
-  async uploadFile(file: Express.Multer.File, courseId: string, userId: string): Promise<{ id: number; url: string; createdAt: Date }> {
+	async uploadFile(file: Express.Multer.File, userId: string): Promise<{ id: number; url: string; createdAt: Date }> {
+    try {
+      let fileUrl: string;
+      
+      // Выбор режима хранения через переменную окружения
+      const storageMode = process.env.STORAGE_MODE || 'local'; // 'local' или 'aws'
+
+      if (storageMode === 'aws') {
+        // ==================== AWS S3 VERSION ====================
+        console.log('☁️ Используется AWS S3 хранение');
+        // Раскомментировать для использования AWS S3:
+        // const fileKey = `uploads/${uuidv4()}-${file.originalname}`;
+        // fileUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${fileKey}`;
+        // 
+        // await this.s3.send(new PutObjectCommand({
+        //   Bucket: process.env.AWS_S3_BUCKET_NAME,
+        //   Key: fileKey,
+        //   Body: file.buffer,
+        //   ContentType: file.mimetype,
+        // }));
+        
+        // ВРЕМЕННАЯ ЗАГЛУШКА (удалить при переключении на AWS):
+        throw new Error('AWS S3 режим не настроен. Раскомментируйте код выше и настройте AWS переменные.');
+        
+      } else {
+        // ==================== LOCAL STORAGE VERSION (по умолчанию) ====================
+        console.log('💾 Используется локальное хранение');
+        // Генерируем уникальное имя файла
+        const fileExtension = path.extname(file.originalname);
+        const fileName = `${uuidv4()}${fileExtension}`;
+        const filePath = path.join(this.uploadPath, fileName);
+        
+        // Сохраняем файл локально
+        fs.writeFileSync(filePath, file.buffer);
+        
+        // URL для доступа к файлу через API Gateway
+        const apiGatewayUrl = process.env.API_GATEWAY_URL || 'http://135.125.107.45:3011';
+        fileUrl = `${apiGatewayUrl}/files/uploads/${fileName}`;
+        
+        console.log('💾 Файл сохранен локально:', filePath);
+        console.log('🔗 URL файла:', fileUrl);
+      }
+
+      // ==================== COMMON CODE FOR BOTH VERSIONS ====================
+      // Сохраняем в PostgreSQL
+      const newFile = this.fileRepository.create({
+        filename: file.originalname,
+        url: fileUrl,
+        mimetype: file.mimetype,
+        userId: userId, // Добавляем владельца файла
+      });
+
+      const savedFile = await this.fileRepository.save(newFile);
+
+
+      return {
+        id: savedFile.id,
+        url: savedFile.url,
+        createdAt: savedFile.createdAt,
+      };
+    } catch (error) {
+      console.error('❌ Ошибка при загрузке файла:', error);
+      throw new Error(`Ошибка при сохранении файла: ${error.message}`);
+    }
+  }
+
+  async uploadFileAsCourse(file: Express.Multer.File, courseId: string, userId: string): Promise<{ id: number; url: string; createdAt: Date }> {
     try {
       let fileUrl: string;
       

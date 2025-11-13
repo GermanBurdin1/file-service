@@ -27,12 +27,24 @@ export class FileController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
+    @Req() req: any
+  ) {
+    const userId = req.user?.sub;
+    console.log('📤 Запрос на загрузку файла:', file.originalname, 'пользователем:', userId);
+    const result = await this.fileService.uploadFile(file, userId);
+    return result;
+  }
+
+	@Post('uploadAsCourse')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadFileAsCourse(
+    @UploadedFile() file: Express.Multer.File,
     @Query('courseId') courseId: string,  // ✅ Получаем как строку
     @Req() req: any
   ) {
     const userId = req.user?.sub;
     console.log('📤 Запрос на загрузку файла:', file.originalname, 'courseId:', courseId, 'пользователем:', userId);
-    const result = await this.fileService.uploadFile(file, courseId, userId);
+    const result = await this.fileService.uploadFileAsCourse(file, courseId, userId);
     return result;
   }
 }
