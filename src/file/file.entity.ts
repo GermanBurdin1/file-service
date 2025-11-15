@@ -21,6 +21,9 @@ export class FileEntity {
 	@Column({ type: 'uuid' })
 	userId: string;
 
+	@Column({ nullable: true })
+	tag: string | null;
+
 	@Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
 	createdAt: Date;
 }
